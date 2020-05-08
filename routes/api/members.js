@@ -3,15 +3,17 @@ const uuid = require('uuid');
 const router = express.Router();
 const members = require('../../Members');
 
+const idFilter = req => member => member.id === parseInt(req.params.id);
+
 // Gets All Members
 router.get('/', (req, res) => res.json(members));
 
 // Get Single Member
 router.get('/:id', (req, res) => {
-  const found = members.some(member => member.id === parseInt(req.params.id));
+  const found = members.some(idFilter(req));
 
   if (found) {
-    res.json(members.filter(member => member.id === parseInt(req.params.id)));
+    res.json(members.filter(idFilter(req)));
   } else {
     res.status(400).json({ msg: `No member with the id of ${req.params.id}` });
   }
@@ -20,9 +22,8 @@ router.get('/:id', (req, res) => {
 // Create Member
 router.post('/', (req, res) => {
   const newMember = {
+    ...req.body,
     id: uuid.v4(),
-    name: req.body.name,
-    email: req.body.email,
     status: 'active'
   };
 
@@ -37,16 +38,15 @@ router.post('/', (req, res) => {
 
 // Update Member
 router.put('/:id', (req, res) => {
-  const found = members.some(member => member.id === parseInt(req.params.id));
+  const found = members.some(idFilter(req));
 
   if (found) {
-    const updMember = req.body;
-    members.forEach(member => {
-      if (member.id === parseInt(req.params.id)) {
-        member.name = updMember.name ? updMember.name : member.name;
-        member.email = updMember.email ? updMember.email : member.email;
+    members.forEach((member, i) => {
+      if (idFilter(req)(member)) {
 
-        res.json({ msg: 'Member updated', member });
+        const updMember = {...member, ...req.body};
+        members[i] = updMember
+        res.json({ msg: 'Member updated', updMember });
       }
     });
   } else {
@@ -56,12 +56,12 @@ router.put('/:id', (req, res) => {
 
 // Delete Member
 router.delete('/:id', (req, res) => {
-  const found = members.some(member => member.id === parseInt(req.params.id));
+  const found = members.some(idFilter(req));
 
   if (found) {
     res.json({
       msg: 'Member deleted',
-      members: members.filter(member => member.id !== parseInt(req.params.id))
+      members: members.filter(member => !idFilter(req)(member))
     });
   } else {
     res.status(400).json({ msg: `No member with the id of ${req.params.id}` });
