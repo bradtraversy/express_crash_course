@@ -56,12 +56,13 @@ router.put('/:id', (req, res) => {
 
 // Delete Member
 router.delete('/:id', (req, res) => {
-  const found = members.some(idFilter(req));
+  const foundIdx = members.findIndex(idFilter(req));
 
-  if (found) {
+  if (foundIdx !== -1) {
+    members.splice(foundIdx,1)
     res.json({
       msg: 'Member deleted',
-      members: members.filter(member => !idFilter(req)(member))
+      members
     });
   } else {
     res.status(400).json({ msg: `No member with the id of ${req.params.id}` });
