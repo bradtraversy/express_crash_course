@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index",
     "dev": "nodemon index"
@@ -12,11 +13,11 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.4",
-    "express-handlebars": "^3.0.1",
+    "express-handlebars": "^7.0.7",
     "moment": "^2.24.0",
-    "uuid": "^3.3.2"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
+    "nodemon": "^1.19.4"
   }
 }
