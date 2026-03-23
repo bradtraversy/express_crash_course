@@ -4,6 +4,11 @@ const exphbs = require('express-handlebars');
 const logger = require('./middleware/logger');
 const members = require('./Members');
 
+// importing middleware and utils for error handling
+const errorHandler = require('./middleware/errorHandler');
+const asyncHandler = require('./middleware/asyncHandler');
+const AppError = require('./utils/AppError');
+
 const app = express();
 
 // Init middleware
@@ -17,19 +22,33 @@ app.set('view engine', 'handlebars');
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Homepage Route
-app.get('/', (req, res) =>
+// Homepage Route (wrapped with asyncHandler)
+app.get('/', asyncHandler(async (req, res, next) => {
+  if (!members) {
+    throw new AppError('Members data not found', 404);
+  }
+
   res.render('index', {
     title: 'Member App',
     members
-  })
-);
+  });
+}));
 
 // Set static folder
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Members API Routes
 app.use('/api/members', require('./routes/api/members'));
+
+
+// Handle Unknown Routes (404)
+app.all('*', (req, res, next) => {
+  next(new AppError(`Route ${req.originalUrl} not found`, 404));
+});
+
+// Global Error Handling Middleware
+app.use(errorHandler);
+
 
 const PORT = process.env.PORT || 5000;
 
